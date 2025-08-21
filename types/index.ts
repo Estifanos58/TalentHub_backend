@@ -17,7 +17,22 @@ export interface JobRegisterBody {
   description: string;
 }
 
+
 export interface CreateJobRequest extends AuthRequest {
   // We're overriding the generic 'body' property with our specific type
   body: JobRegisterBody;
+}
+
+export interface applicationBody {
+  jobId: string;
+}
+
+export interface CreateApplicationRequest extends AuthRequest {
+  body: applicationBody;
+}
+
+export interface GetApplicationRequest extends AuthRequest {
+  params: {
+    id: string; 
+  };
 }
