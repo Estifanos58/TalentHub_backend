@@ -10,6 +10,13 @@ export const registerUserController = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
+    if(role){
+      console.log("Role: ", role)
+      if(role !== "employer" && role !== "applicant"){
+        return res.status(400).json({ message: "Role must be either 'employer' or 'applicant'" });
+      }
+    }
+
     const existingUser = await user.findOne({ email });
 
     if (existingUser) {

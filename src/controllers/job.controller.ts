@@ -36,58 +36,68 @@ export const createJob = async (req: CreateJobRequest, res: Response) => {
 
 
 export const getJobs = async (req: GetJobRequest, res: Response) => {
-    try {
-        const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 10;
-        const search = (req.query.search as string) || '';
-        
-        // Calculate the number of documents to skip
-        const skip = (page - 1) * limit;
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const search = (req.query.search as string) || "";
 
-        // We will search in 'title' and 'description' fields
-        const query: any = {};
-        if (search) {
-            query.$or = [
-                { title: { $regex: search, $options: 'i' } }, // 'i' for case-insensitive
-                { description: { $regex: search, $options: 'i' } }
-            ];
-        }
+    // New filter query params
+    const type = req.query.type as string; // "permanent" | "contract" | "internship"
+    const site = req.query.site as string; // "on-site" | "remote" | "hybrid"
+    const experience = req.query.experience as string; // "entry" | "mid" | "senior"
 
-        // Execute queries to get jobs and total count
-        const [jobs, totalJobs] = await Promise.all([
-            job.find(query)
-               .sort({ createdAt: -1 })
-               .skip(skip)
-               .limit(limit),
-            job.countDocuments(query)
-        ]);
+    const skip = (page - 1) * limit;
 
-        // Calculate total pages
-        const totalPages = Math.ceil(totalJobs / limit);
+    // Build query object
+    const query: any = {};
 
-        if (totalJobs === 0) {
-            return res.status(404).send({
-                success: false,
-                message: "No jobs found matching your criteria"
-            });
-        }
-        
-        return res.status(200).send({
-            success: true,
-            jobs,
-            pagination: {
-                totalJobs,
-                totalPages,
-                currentPage: page,
-                limit
-            }
-        });
-
-    } catch (error) {
-        console.error("Error fetching jobs:", error); 
-        return res.status(500).send({
-            success: false,
-            message: "Internal server error"
-        });
+    // Search in title/description
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ];
     }
-}
+
+    // Apply filters if provided
+    if (type) query.type = type;
+    if (site) query.site = site;
+    if (experience) query.experience = experience;
+
+    // Execute queries to get jobs and total count
+    const [jobs, totalJobs] = await Promise.all([
+      job
+        .find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      job.countDocuments(query),
+    ]);
+
+    const totalPages = Math.ceil(totalJobs / limit);
+
+    if (totalJobs === 0) {
+      return res.status(404).send({
+        success: false,
+        message: "No jobs found matching your criteria",
+      });
+    }
+
+    return res.status(200).send({
+      success: true,
+      jobs,
+      pagination: {
+        totalJobs,
+        totalPages,
+        currentPage: page,
+        limit,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching jobs:", error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};

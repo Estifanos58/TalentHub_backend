@@ -42,5 +42,8 @@ export interface GetJobRequest extends Request {
     page?: string;
     limit?: string;
     search?: string;
+    type?: string; // "permanent" | "contract" | "internship"
+    site?: string; // "on-site" | "remote" | "hybrid"
+    experience?: string; // "entry" | "mid" | "senior"
   }
 }
