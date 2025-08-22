@@ -16,7 +16,8 @@ export const createJob = async (req: CreateJobRequest, res: Response) => {
       salary
     } = req.body;
     const createdBy = req.userId;
-    console.log("CreatedBy: ", req.userId);
+    // console.log("CreatedBy: ", req.userId);
+    console.log("Role in createJob:", req.body);
 
     if (
       !title ||
@@ -26,7 +27,6 @@ export const createJob = async (req: CreateJobRequest, res: Response) => {
       !experience ||
       !createdBy ||
       !applicantsNeeded ||
-      !noOfApplicants || 
       !deadline ||
       !salary
     ) {
@@ -36,7 +36,18 @@ export const createJob = async (req: CreateJobRequest, res: Response) => {
       });
     }
 
-    const newJob = await job.create({
+    console.log("Creating job with data:", {
+      title,
+      description,
+       createdBy,
+      type,
+      site,
+      experience,
+      applicantsNeeded,
+      deadline,
+      salary
+    })
+    const newJob = new job({
       title,
       description,
       createdBy,
@@ -49,6 +60,7 @@ export const createJob = async (req: CreateJobRequest, res: Response) => {
       salary
     });
 
+    await newJob.save();
 
     return res.status(201).send({
       success: true,

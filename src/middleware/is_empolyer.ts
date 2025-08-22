@@ -8,12 +8,14 @@ export const isEmployer = (req: AuthRequest , res: Response, next: NextFunction)
             message: "Role not found in request"
         });
     }
-    if(req.role !== "employer") {
+    if(req.role !== "employer" && req.role !== "admin") {
+        console.log("Hi From Here ", req.role);
         return res.status(403).send({
             success: false,
-            message: "Access denied: You are not an employer"
+            message: "Access denied: You are not an employer or admin"
         });
     }
 
+    console.log("User is an employer or admin, proceeding...");
     next();
 } 

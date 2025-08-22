@@ -14,7 +14,7 @@ export const registerUserController = async (req: Request, res: Response) => {
 
     if(role){
       console.log("Role: ", role)
-      if(role !== "employer" && role !== "applicant"){
+      if(role !== "employer" && role !== "applicant" && role !== "admin"){
         return res.status(400).json({ message: "Role must be either 'employer' or 'applicant'" });
       }
     }
@@ -100,7 +100,7 @@ export const getUserController = async (req: AuthRequest, res: Response) => {
     // const objectId = new mongoose.Types.ObjectId(userId)
     // console.log("ObjectId:", objectId, typeof objectId);
    const existingUser = await user.findById(userId);
-    console.log("Existing user:", existingUser);
+    // console.log("Existing user:", existingUser);
 
     if (!existingUser) {
       return res.status(404).json({ message: "User not found" });
