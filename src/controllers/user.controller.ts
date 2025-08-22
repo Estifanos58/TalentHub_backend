@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import user, { IUser } from "../models/user";
 import { generateToken } from "../utils/generateToke";
+import { AuthRequest } from "../types";
+import mongoose from "mongoose";
 
 export const registerUserController = async (req: Request, res: Response) => {
   try {
@@ -30,20 +32,18 @@ export const registerUserController = async (req: Request, res: Response) => {
       role: role || "applicant",
     });
 
+    await newUser.save();
+
+
     const userResponse = newUser.toObject() as Partial<IUser>;
     delete userResponse.password;
 
     const token = generateToken(newUser._id, newUser.role);
-    
-    res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production", 
-        sameSite: "strict",
-    });
+  
 
     return res
       .status(201)
-      .json({ message: "New user created", data: userResponse });
+      .json({ message: "New user created", data: userResponse, token });
   } catch (error: any) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -73,16 +73,43 @@ export const loginUserController = async (req: Request, res: Response) => {
     const userResponse = existingUser.toObject() as Partial<IUser>;
     delete userResponse.password;
 
-    res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production", 
-        sameSite: "strict",
-    });
 
     return res.status(200).json({
       message: "Login successful",
       user: userResponse,
+      token
     });
+  } catch (error: any) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const getUserController = async (req: AuthRequest, res: Response) => {
+  try {
+    // console.log("Get user controller hit");
+
+    const userId = req.userId;
+    // console.log("User ID from token:", userId);
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // console.log("User ID from token:", userId, typeof userId);
+
+    // const objectId = new mongoose.Types.ObjectId(userId)
+    // console.log("ObjectId:", objectId, typeof objectId);
+   const existingUser = await user.findById(userId);
+    console.log("Existing user:", existingUser);
+
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const userResponse = existingUser.toObject() as Partial<IUser>;
+    delete userResponse.password;
+
+    return res.status(200).json({ message: "User fetched successfully", data: userResponse });
   } catch (error: any) {
     return res.status(500).json({ message: "Server error", error: error.message });
   }

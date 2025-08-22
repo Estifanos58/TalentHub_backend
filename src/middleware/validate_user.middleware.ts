@@ -4,7 +4,7 @@ import { AuthRequest, TokenPayload } from "../types";
 
 export const validateUser = (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const token = req.cookies?.token; // safe now
+    const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
       return res.status(401).json({

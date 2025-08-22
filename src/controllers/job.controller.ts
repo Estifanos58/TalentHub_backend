@@ -49,6 +49,7 @@ export const createJob = async (req: CreateJobRequest, res: Response) => {
       salary
     });
 
+
     return res.status(201).send({
       success: true,
       message: "Job created successfully",
