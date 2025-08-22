@@ -18,6 +18,10 @@ export interface JobRegisterBody {
   type: "permanent" | "contract" | "internship";
   site: "on-site" | "remote" | "hybrid";
   experience: "entry" | "mid" | "senior";
+  applicantsNeeded?: number;
+  noOfApplicants?: number;
+  deadline?: Date;
+  salary?: number;
 }
 
 
@@ -28,6 +32,8 @@ export interface CreateJobRequest extends AuthRequest {
 
 export interface applicationBody {
   jobId: string;
+  coverLetter?: string;
+  resume?: string;
 }
 
 export interface CreateApplicationRequest extends AuthRequest {
@@ -42,6 +48,7 @@ export interface GetApplicationRequest extends AuthRequest {
 
 export interface GetJobRequest extends Request {
   query: {
+    id?: string;
     page?: string;
     limit?: string;
     search?: string;

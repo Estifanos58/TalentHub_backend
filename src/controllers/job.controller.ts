@@ -3,43 +3,65 @@ import { CreateJobRequest, GetJobRequest } from "../types";
 import { Response } from "express";
 
 export const createJob = async (req: CreateJobRequest, res: Response) => {
-    try {
-        const { title, description, type, site, experience} = req.body;
-        const createdBy = req.userId; 
-        console.log("CreatedBy: ", req.userId)
+  try {
+    const {
+      title,
+      description,
+      type,
+      site,
+      experience,
+      applicantsNeeded,
+      noOfApplicants,
+      deadline,
+      salary
+    } = req.body;
+    const createdBy = req.userId;
+    console.log("CreatedBy: ", req.userId);
 
-        if (!title || !description) {
-            return res.status(400).send({
-                success: false,
-                message: "All fields are required"
-            });
-        }
-
-        console.log("Creating job with data:", { title, description, type, site, experience, createdBy });
-
-        const newJob = await job.create({
-            title,
-            description,
-            createdBy,
-            type,
-            site,
-            experience
-        });
-
-        return res.status(201).send({
-            success: true,
-            message: "Job created successfully",
-            job: newJob
-        });
-    } catch (error) {
-        console.error("Error creating job:", error);
-        return res.status(500).send({
-            success: false,
-            message: "Internal server error"
-        });
+    if (
+      !title ||
+      !description ||
+      !type ||
+      !site ||
+      !experience ||
+      !createdBy ||
+      !applicantsNeeded ||
+      !noOfApplicants || 
+      !deadline ||
+      !salary
+    ) {
+      return res.status(400).send({
+        success: false,
+        message: "All fields are required",
+      });
     }
-}
 
+    const newJob = await job.create({
+      title,
+      description,
+      createdBy,
+      type,
+      site,
+      experience,
+      applicantsNeeded,
+      noOfApplicants,
+      deadline,
+      salary
+    });
+
+    return res.status(201).send({
+      success: true,
+      message: "Job created successfully",
+      job: newJob,
+    });
+  } catch (error) {
+    console.error("Error creating job:", error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
 
 export const getJobs = async (req: GetJobRequest, res: Response) => {
   try {
@@ -72,11 +94,7 @@ export const getJobs = async (req: GetJobRequest, res: Response) => {
 
     // Execute queries to get jobs and total count
     const [jobs, totalJobs] = await Promise.all([
-      job
-        .find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit),
+      job.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
       job.countDocuments(query),
     ]);
 
@@ -106,4 +124,26 @@ export const getJobs = async (req: GetJobRequest, res: Response) => {
       message: "Internal server error",
     });
   }
+};
+
+export const getJobById = async (req: GetJobRequest, res: Response) => {
+  try {
+    const jobId = req.params.id;
+
+    const foundJob = await job
+      .findById(jobId)
+      .populate("createdBy", "name email");
+
+    if (!foundJob) {
+      return res.status(404).send({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    return res.status(200).send({
+      success: true,
+      job: foundJob,
+    });
+  } catch (error) {}
 };

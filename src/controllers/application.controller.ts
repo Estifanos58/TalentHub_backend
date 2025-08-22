@@ -1,10 +1,11 @@
 import applications from "../models/applications";
+import job from "../models/job";
 import { CreateApplicationRequest, GetApplicationRequest } from "../types";
 import { Response } from "express";
 
 export const applyForJob = async (req: CreateApplicationRequest, res: Response) => {
     try {
-        const { jobId } = req.body;
+        const { jobId, coverLetter, resume } = req.body;
         const userId = req.userId;
 
         if (!jobId) {
@@ -14,9 +15,18 @@ export const applyForJob = async (req: CreateApplicationRequest, res: Response) 
             });
         }
 
+        if(!coverLetter && !resume){
+            return res.status(400).send({
+                success: false,
+                message: "Either cover letter or resume is required"
+            });
+        }
+
         const applicantAlreadyExist = await applications.findOne({
             jobId,
-            userId
+            userId,
+            coverLetter,
+            resume
         })
 
         if(applicantAlreadyExist){
@@ -26,12 +36,46 @@ export const applyForJob = async (req: CreateApplicationRequest, res: Response) 
             })
         }
 
-        // Assuming we have a model for applications
+        // Is Application for the Given Job Already full
+        const foundJob = await job.findById(jobId);
+
+        if(!foundJob){
+            return res.status(404).send({
+                success: false,
+                message: "Job Not Found"
+            });
+        }
+
+        if(foundJob.noOfApplicants && foundJob.applicantsNeeded && foundJob.noOfApplicants >= foundJob.applicantsNeeded){
+            return res.status(400).send({
+                success: false,
+                message: "Application for this job is full"
+            });
+        }
+
+        // Check for Deadline
+        if(foundJob.deadline){
+            const currentDate = new Date();
+            if(currentDate > foundJob.deadline){
+                return res.status(400).send({
+                    success: false,
+                    message: "Application deadline has passed"
+                });
+            }
+        }
+
         const application = await applications.create({
             jobId,
             userId,
             status: "applied"
         });
+
+        // Increment the noOfApplicants count in the job document
+        if(foundJob.noOfApplicants !== undefined){
+            foundJob.noOfApplicants += 1;
+            await foundJob.save();
+        }
+
 
         return res.status(201).send({
             success: true,
