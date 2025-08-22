@@ -36,3 +36,11 @@ export interface GetApplicationRequest extends AuthRequest {
     id: string; 
   };
 }
+
+export interface GetJobRequest extends Request {
+  query: {
+    page?: string;
+    limit?: string;
+    search?: string;
+  }
+}

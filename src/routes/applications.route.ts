@@ -4,5 +4,7 @@ import { validateUser } from "../middleware/validate_user.middleware";
 
 const router = Router();
 
-router.post('/applications',validateUser, applyForJob)
-router.get('/applications/:id', getApplication);
+router.post('/',validateUser, applyForJob)
+router.get('/:id', getApplication);
+
+export default router;

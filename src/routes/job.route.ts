@@ -5,7 +5,7 @@ import { createJob, getJobs } from "../controllers/job.controller";
 
 const router = Router();
 
-router.post("/jobs",validateUser, isEmployer, createJob);
-router.get("/jobs", getJobs)
+router.post("/",validateUser, isEmployer, createJob);
+router.get("/", getJobs)
 
 export default router;

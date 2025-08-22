@@ -14,6 +14,18 @@ export const applyForJob = async (req: CreateApplicationRequest, res: Response) 
             });
         }
 
+        const applicantAlreadyExist = await applications.findOne({
+            jobId,
+            userId
+        })
+
+        if(applicantAlreadyExist){
+            return res.status(208).send({
+                success: false,
+                message: "Application Already Registerd"
+            })
+        }
+
         // Assuming we have a model for applications
         const application = await applications.create({
             jobId,
