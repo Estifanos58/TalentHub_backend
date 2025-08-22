@@ -4,8 +4,9 @@ import { Response } from "express";
 
 export const createJob = async (req: CreateJobRequest, res: Response) => {
     try {
-        const { title, description } = req.body;
+        const { title, description, type, site, experience} = req.body;
         const createdBy = req.userId; 
+        console.log("CreatedBy: ", req.userId)
 
         if (!title || !description) {
             return res.status(400).send({
@@ -14,10 +15,15 @@ export const createJob = async (req: CreateJobRequest, res: Response) => {
             });
         }
 
+        console.log("Creating job with data:", { title, description, type, site, experience, createdBy });
+
         const newJob = await job.create({
             title,
             description,
-            createdBy
+            createdBy,
+            type,
+            site,
+            experience
         });
 
         return res.status(201).send({
@@ -77,7 +83,7 @@ export const getJobs = async (req: GetJobRequest, res: Response) => {
     const totalPages = Math.ceil(totalJobs / limit);
 
     if (totalJobs === 0) {
-      return res.status(404).send({
+      return res.status(200).send({
         success: false,
         message: "No jobs found matching your criteria",
       });

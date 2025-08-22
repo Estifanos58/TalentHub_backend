@@ -33,10 +33,18 @@ export const registerUserController = async (req: Request, res: Response) => {
     const userResponse = newUser.toObject() as Partial<IUser>;
     delete userResponse.password;
 
+    const token = generateToken(newUser._id, newUser.role);
+    
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", 
+        sameSite: "strict",
+    });
+
     return res
       .status(201)
       .json({ message: "New user created", data: userResponse });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };

@@ -14,8 +14,9 @@ export const validateUser = (req: AuthRequest, res: Response, next: NextFunction
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as TokenPayload;
+    // console.log("Decoded token:", decoded);
 
-    req.userId = decoded.userId;
+    req.userId = decoded.id;
     req.role = decoded.role;
 
     next();

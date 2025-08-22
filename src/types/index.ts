@@ -2,7 +2,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { Request } from "express";
 
 export interface AuthRequest extends Request {
-  userId?: string;
+  userId?: any;
   role?: string;
   cookies: { [key: string]: string }; 
 }
@@ -15,6 +15,9 @@ export interface TokenPayload extends JwtPayload {
 export interface JobRegisterBody {
   title: string;
   description: string;
+  type: "permanent" | "contract" | "internship";
+  site: "on-site" | "remote" | "hybrid";
+  experience: "entry" | "mid" | "senior";
 }
 
 

@@ -14,8 +14,10 @@ dotenv.config();
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL, // Change to your frontend URL
-    credentials: true, // This is important!
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
