@@ -13,7 +13,7 @@ export const createJob = async (req: CreateJobRequest, res: Response) => {
       applicantsNeeded,
       noOfApplicants,
       deadline,
-      salary
+      salary,
     } = req.body;
     const createdBy = req.userId;
     // console.log("CreatedBy: ", req.userId);
@@ -39,14 +39,14 @@ export const createJob = async (req: CreateJobRequest, res: Response) => {
     console.log("Creating job with data:", {
       title,
       description,
-       createdBy,
+      createdBy,
       type,
       site,
       experience,
       applicantsNeeded,
       deadline,
-      salary
-    })
+      salary,
+    });
     const newJob = new job({
       title,
       description,
@@ -57,7 +57,7 @@ export const createJob = async (req: CreateJobRequest, res: Response) => {
       applicantsNeeded,
       noOfApplicants,
       deadline,
-      salary
+      salary,
     });
 
     await newJob.save();
@@ -78,9 +78,15 @@ export const createJob = async (req: CreateJobRequest, res: Response) => {
 
 export const getJobs = async (req: GetJobRequest, res: Response) => {
   try {
+    let userId = null;
+    if (req.userId) {
+      userId = req.userId;
+    }
+
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const search = (req.query.search as string) || "";
+    const yourJob = req.query.yourJobs === "true";
 
     // New filter query params
     const type = req.query.type as string; // "permanent" | "contract" | "internship"
@@ -90,7 +96,12 @@ export const getJobs = async (req: GetJobRequest, res: Response) => {
     const skip = (page - 1) * limit;
 
     // Build query object
+  
     const query: any = {};
+
+    if(yourJob){
+      query.createdBy = userId;
+    } 
 
     // Search in title/description
     if (search) {

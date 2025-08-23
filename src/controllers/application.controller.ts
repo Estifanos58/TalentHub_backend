@@ -108,6 +108,7 @@ export const getApplications = async (
 ) => {
   try {
     const userId = req.userId;
+    const jobId = req.params.jobId;
 
     if (!userId) {
       return res.status(400).send({
@@ -124,8 +125,14 @@ export const getApplications = async (
     // Get status filter from query
     const status = req.query.status as string | undefined;
 
+    const query: any = {}
     // Build query
-    const query: any = { userId };
+    if(jobId){
+       query.jobId = jobId;
+    }else {
+      query.userId = userId;
+    }
+    
     if (status && ["applied", "shortlisted", "rejected"].includes(status)) {
       query.status = status;
     }
@@ -133,12 +140,14 @@ export const getApplications = async (
     // Count total documents for pagination metadata
     const totalApplications = await applications.countDocuments(query);
 
-    // Fetch paginated + filtered results + populate job.title
+    // Dynamically populate based on whether jobId is present
     const applicationsList = await applications
       .find(query)
       .skip(skip)
       .limit(limit)
-      .populate("jobId", "title"); // 👈 populates only the job title
+      .populate(jobId ? "userId" : "jobId", jobId ? "username email" : "title"); 
+      // If jobId is present, populate userId with name and email
+      // If jobId is not present, populate jobId with title
 
     if (!applicationsList || applicationsList.length === 0) {
       return res.status(404).send({
@@ -214,13 +223,23 @@ export const getApplicationById = async (
   }
 };
 
-export const updateApplicationStatus = async (req: UpdateApplicationStatusRequest, res: Response) => {
+export const updateApplicationStatus = async (
+  req: UpdateApplicationStatusRequest,
+  res: Response
+) => {
   try {
     const userId = req.userId;
     const applicationId = req.params.id;
     const { status } = req.body;
 
-    console.log("Updating application:", applicationId, "to status:", status, "by user:", userId);
+    console.log(
+      "Updating application:",
+      applicationId,
+      "to status:",
+      status,
+      "by user:",
+      userId
+    );
 
     if (!applicationId) {
       return res.status(400).send({
@@ -236,12 +255,10 @@ export const updateApplicationStatus = async (req: UpdateApplicationStatusReques
       });
     }
 
-    const application = await applications
-      .findById(applicationId)
-      .populate({
-        path: "jobId",
-        select: "createdBy",
-      });
+    const application = await applications.findById(applicationId).populate({
+      path: "jobId",
+      select: "createdBy",
+    });
 
     if (!application) {
       return res.status(404).send({
@@ -269,13 +286,11 @@ export const updateApplicationStatus = async (req: UpdateApplicationStatusReques
       message: "Application status updated successfully",
       application,
     });
-
-  } catch(error){
-     console.error("Error fetching applications:", error);
+  } catch (error) {
+    console.error("Error fetching applications:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
     });
   }
-
-}
+};

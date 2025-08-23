@@ -42,6 +42,7 @@ export interface CreateApplicationRequest extends AuthRequest {
 
 export interface GetApplicationsRequest extends AuthRequest {
   params: {
+    jobId?: string;
     page?: string;
     limit?: string;
     status?: string;
@@ -52,7 +53,7 @@ export interface GetApplicationByIdRequest extends AuthRequest {
     id: string;
   }
 }
-export interface GetJobRequest extends Request {
+export interface GetJobRequest extends AuthRequest {
   query: {
     id?: string;
     page?: string;
@@ -61,6 +62,7 @@ export interface GetJobRequest extends Request {
     type?: string; // "permanent" | "contract" | "internship"
     site?: string; // "on-site" | "remote" | "hybrid"
     experience?: string; // "entry" | "mid" | "senior"
+    yourJobs?: string; // "true" or "false"
   }
 }
 
