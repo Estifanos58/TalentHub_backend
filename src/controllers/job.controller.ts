@@ -96,12 +96,12 @@ export const getJobs = async (req: GetJobRequest, res: Response) => {
     const skip = (page - 1) * limit;
 
     // Build query object
-  
+
     const query: any = {};
 
-    if(yourJob){
+    if (yourJob) {
       query.createdBy = userId;
-    } 
+    }
 
     // Search in title/description
     if (search) {
@@ -169,5 +169,62 @@ export const getJobById = async (req: GetJobRequest, res: Response) => {
       success: true,
       job: foundJob,
     });
-  } catch (error) {}
+  } catch (error) {
+    console.error("Error fetching job by ID:", error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+export const deleteJob = async (req: any, res: Response) => {
+  try {
+    const jobId = req.params.id;
+    const userId = req.userId;
+    const userRole = req.role;
+
+    if (!userId) {
+      return res.status(401).send({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    if (!jobId) {
+      return res.status(400).send({
+        success: false,
+        message: "Job ID is required",
+      });
+    }
+
+    let job: any = null;
+
+    if (userRole === "admin") {
+      job = await job.findById(jobId);
+    } else {
+      job = await job.findOne({ _id: jobId, createdBy: userId });
+    }
+
+    if (!job) {
+      return res.status(404).send({
+        success: false,
+        message: "Job not found or you do not have permission to delete it",
+      });
+    }
+
+    await job.remove();
+
+    return res.status(200).send({
+      success: true,
+      message: "Job deleted successfully",
+    });
+
+  } catch (error) {
+    console.error("Error fetching job by ID:", error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal server error",
+    });
+  }
 };
