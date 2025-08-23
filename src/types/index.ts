@@ -40,12 +40,18 @@ export interface CreateApplicationRequest extends AuthRequest {
   body: applicationBody;
 }
 
-export interface GetApplicationRequest extends AuthRequest {
+export interface GetApplicationsRequest extends AuthRequest {
   params: {
-    id: string; 
+    page?: string;
+    limit?: string;
+    status?: string;
   };
 }
-
+export interface GetApplicationByIdRequest extends AuthRequest {
+  params: {
+    id: string;
+  }
+}
 export interface GetJobRequest extends Request {
   query: {
     id?: string;

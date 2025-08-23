@@ -4,6 +4,7 @@ import { AuthRequest, TokenPayload } from "../types";
 
 export const validateUser = (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    // console.log("Authorization header:", req.headers.authorization);
     const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
@@ -17,6 +18,9 @@ export const validateUser = (req: AuthRequest, res: Response, next: NextFunction
     // console.log("Decoded token:", decoded);
 
     req.userId = decoded.id;
+
+    // console.log("Authenticated user ID:", req.userId);
+
     req.role = decoded.role;
 
     next();

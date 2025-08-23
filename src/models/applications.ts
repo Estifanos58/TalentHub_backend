@@ -3,8 +3,8 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IApplications extends Document {
   jobId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
-  coverLetter?: string;
-  resume?: string;
+  coverLetter: string;
+  resume: string;
   status: "applied" | "shortlisted"| "rejected";
 }
 

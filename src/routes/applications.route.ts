@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { applyForJob, getApplication } from "../controllers/application.controller";
+import { applyForJob, getApplicationById, getApplications } from "../controllers/application.controller";
 import { validateUser } from "../middleware/validate_user.middleware";
 
 const router = Router();
 
 router.post('/',validateUser, applyForJob)
-router.get('/:id', getApplication);
+router.get('/',validateUser, getApplications);
+router.get('/:id', validateUser, getApplicationById)
 
 export default router;

@@ -1,125 +1,214 @@
 import applications from "../models/applications";
 import job from "../models/job";
-import { CreateApplicationRequest, GetApplicationRequest } from "../types";
+import {
+  CreateApplicationRequest,
+  GetApplicationByIdRequest,
+  GetApplicationsRequest,
+} from "../types";
 import { Response } from "express";
 
-export const applyForJob = async (req: CreateApplicationRequest, res: Response) => {
-    try {
-        const { jobId, coverLetter, resume } = req.body;
-        const userId = req.userId;
+export const applyForJob = async (
+  req: CreateApplicationRequest,
+  res: Response
+) => {
+  try {
+    const { jobId, coverLetter, resume } = req.body;
+    const userId = req.userId;
 
-        if (!jobId) {
-            return res.status(400).send({
-                success: false,
-                message: "Job ID is required"
-            });
-        }
-
-        if(!coverLetter && !resume){
-            return res.status(400).send({
-                success: false,
-                message: "Either cover letter or resume is required"
-            });
-        }
-
-        const applicantAlreadyExist = await applications.findOne({
-            jobId,
-            userId,
-            coverLetter,
-            resume
-        })
-
-        if(applicantAlreadyExist){
-            return res.status(208).send({
-                success: false,
-                message: "Application Already Registerd"
-            })
-        }
-
-        // Is Application for the Given Job Already full
-        const foundJob = await job.findById(jobId);
-
-        if(!foundJob){
-            return res.status(404).send({
-                success: false,
-                message: "Job Not Found"
-            });
-        }
-
-        if(foundJob.noOfApplicants && foundJob.applicantsNeeded && foundJob.noOfApplicants >= foundJob.applicantsNeeded){
-            return res.status(400).send({
-                success: false,
-                message: "Application for this job is full"
-            });
-        }
-
-        // Check for Deadline
-        if(foundJob.deadline){
-            const currentDate = new Date();
-            if(currentDate > foundJob.deadline){
-                return res.status(400).send({
-                    success: false,
-                    message: "Application deadline has passed"
-                });
-            }
-        }
-
-        const application = await applications.create({
-            jobId,
-            userId,
-            status: "applied"
-        });
-
-        // Increment the noOfApplicants count in the job document
-        if(foundJob.noOfApplicants !== undefined){
-            foundJob.noOfApplicants += 1;
-            await foundJob.save();
-        }
-
-
-        return res.status(201).send({
-            success: true,
-            message: "Application submitted successfully",
-            application
-        });
-    } catch (error) {
-        console.error("Error applying for job:", error);
-        return res.status(500).send({
-            success: false,
-            message: "Internal server error"
-        });
+    if (!jobId) {
+      return res.status(400).send({
+        success: false,
+        message: "Job ID is required",
+      });
     }
-}
 
-export const getApplication = async (req: GetApplicationRequest, res: Response) => {
-    try {
-        const userId = req.params.id
-
-        if (!userId) {
-            return res.status(400).send({
-                success: false,
-                message: "User ID not found"
-            });
-        }
-
-        const applicationsList = await applications.find({ userId });
-
-        if (!applicationsList || applicationsList.length === 0) {
-            return res.status(404).send({
-                success: false,
-                message: "No applications found for this user"
-            });
-        }
-
-        return res.status(200).send({
-            success: true,
-            applications: applicationsList
-        });
-    } catch (error) {
-        console.error("Error fetching applications:", error);
-        return res.status(500).send({
-            success: false,
-            message: "Internal server error"
-        });
+    if (!coverLetter && !resume) {
+      return res.status(400).send({
+        success: false,
+        message: "Either cover letter or resume is required",
+      });
     }
-}
+
+    const applicantAlreadyExist = await applications.findOne({
+      jobId,
+      userId,
+    });
+
+    if (applicantAlreadyExist) {
+      return res.status(208).send({
+        success: false,
+        message: "Application Already Registerd",
+      });
+    }
+
+    // Is Application for the Given Job Already full
+    const foundJob = await job.findById(jobId);
+
+    if (!foundJob) {
+      return res.status(404).send({
+        success: false,
+        message: "Job Not Found",
+      });
+    }
+
+    if (
+      foundJob.noOfApplicants &&
+      foundJob.applicantsNeeded &&
+      foundJob.noOfApplicants >= foundJob.applicantsNeeded
+    ) {
+      return res.status(400).send({
+        success: false,
+        message: "Application for this job is full",
+      });
+    }
+
+    // Check for Deadline
+    if (foundJob.deadline) {
+      const currentDate = new Date();
+      if (currentDate > foundJob.deadline) {
+        return res.status(400).send({
+          success: false,
+          message: "Application deadline has passed",
+        });
+      }
+    }
+
+    const application = await applications.create({
+      jobId,
+      userId,
+      status: "applied",
+      coverLetter,
+      resume,
+    });
+
+    // Increment the noOfApplicants count in the job document
+    if (foundJob.noOfApplicants !== undefined) {
+      foundJob.noOfApplicants += 1;
+      await foundJob.save();
+    }
+
+    return res.status(201).send({
+      success: true,
+      message: "Application submitted successfully",
+      application,
+    });
+  } catch (error) {
+    console.error("Error applying for job:", error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+export const getApplications = async (
+  req: GetApplicationsRequest,
+  res: Response
+) => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(400).send({
+        success: false,
+        message: "User ID not found",
+      });
+    }
+
+    // Get pagination params from query
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    // Get status filter from query
+    const status = req.query.status as string | undefined;
+
+    // Build query
+    const query: any = { userId };
+    if (status && ["applied", "shortlisted", "rejected"].includes(status)) {
+      query.status = status;
+    }
+
+    // Count total documents for pagination metadata
+    const totalApplications = await applications.countDocuments(query);
+
+    // Fetch paginated + filtered results + populate job.title
+    const applicationsList = await applications
+      .find(query)
+      .skip(skip)
+      .limit(limit)
+      .populate("jobId", "title"); // 👈 populates only the job title
+
+    if (!applicationsList || applicationsList.length === 0) {
+      return res.status(404).send({
+        success: false,
+        message: "No applications found for this user",
+      });
+    }
+
+    return res.status(200).send({
+      success: true,
+      applications: applicationsList,
+      pagination: {
+        total: totalApplications,
+        page,
+        limit,
+        totalPages: Math.ceil(totalApplications / limit),
+      },
+      filters: {
+        status: status || "all",
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching applications:", error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+export const getApplicationById = async (
+  req: GetApplicationByIdRequest,
+  res: Response
+) => {
+  try {
+    const userId = req.userId;
+    const applicationId = req.params.id;
+
+    if (!applicationId) {
+      return res.status(400).send({
+        success: false,
+        message: "Internal server error",
+      });
+    }
+
+    const application = await applications
+      .findById(applicationId)
+      .populate({
+        path: "jobId",
+        select:
+          "title description createdBy site experience type salary deadline noOfApplicants applicantsNeeded",
+        populate: { path: "createdBy", select: "username email" },
+      })
+      .populate("userId", "username email");
+
+    if (!application) {
+      return res.status(400).json({
+        success: false,
+        message: "Application With this Id not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: application,
+    });
+  } catch (error) {
+    console.error("Error fetching applications:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
