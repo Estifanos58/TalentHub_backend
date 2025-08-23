@@ -198,22 +198,22 @@ export const deleteJob = async (req: any, res: Response) => {
       });
     }
 
-    let job: any = null;
+    let jobDoc: any = null;
 
     if (userRole === "admin") {
-      job = await job.findById(jobId);
+      jobDoc = await job.findById(jobId);
     } else {
-      job = await job.findOne({ _id: jobId, createdBy: userId });
+      jobDoc = await job.findOne({ _id: jobId, createdBy: userId });
     }
 
-    if (!job) {
+    if (!jobDoc) {
       return res.status(404).send({
         success: false,
         message: "Job not found or you do not have permission to delete it",
       });
     }
 
-    await job.remove();
+    await jobDoc.deleteOne();
 
     return res.status(200).send({
       success: true,
@@ -221,7 +221,7 @@ export const deleteJob = async (req: any, res: Response) => {
     });
 
   } catch (error) {
-    console.error("Error fetching job by ID:", error);
+    console.error("Error deleting job by ID:", error);
     return res.status(500).send({
       success: false,
       message: "Internal server error",
