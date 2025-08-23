@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import userRoute from "./routes/user.route";
 import jobRoute from "./routes/job.route";
 import applicationRoute from "./routes/applications.route";
+import adminRoute from './routes/admin.route';
 
 const app: Application = express();
 
@@ -29,6 +30,7 @@ const port = process.env.PORT || 3000;
 app.use("/auth", userRoute);
 app.use("/jobs", jobRoute);
 app.use("/application", applicationRoute);
+app.use('/admin', adminRoute)
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello, TypeScript Express!");
