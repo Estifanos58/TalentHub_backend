@@ -108,7 +108,9 @@ export const getApplications = async (
 ) => {
   try {
     const userId = req.userId;
-    const jobId = req.params.jobId;
+    const jobId = req.query.jobId;
+
+    // console.log("job:", jobId);
 
     if (!userId) {
       return res.status(400).send({
@@ -145,12 +147,17 @@ export const getApplications = async (
       .find(query)
       .skip(skip)
       .limit(limit)
-      .populate(jobId ? "userId" : "jobId", jobId ? "username email" : "title"); 
-      // If jobId is present, populate userId with name and email
-      // If jobId is not present, populate jobId with title
+      .populate({
+        path: "jobId",
+        select:
+          "title",
+        populate: { path: "createdBy", select: "username email" },
+      })
+      .populate("userId", "username email");
+ 
 
     if (!applicationsList || applicationsList.length === 0) {
-      return res.status(404).send({
+      return res.status(200).send({
         success: false,
         message: "No applications found for this user",
       });
