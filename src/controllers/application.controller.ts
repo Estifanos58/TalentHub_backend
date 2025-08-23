@@ -4,6 +4,7 @@ import {
   CreateApplicationRequest,
   GetApplicationByIdRequest,
   GetApplicationsRequest,
+  UpdateApplicationStatusRequest,
 } from "../types";
 import { Response } from "express";
 
@@ -212,3 +213,69 @@ export const getApplicationById = async (
     });
   }
 };
+
+export const updateApplicationStatus = async (req: UpdateApplicationStatusRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    const applicationId = req.params.id;
+    const { status } = req.body;
+
+    console.log("Updating application:", applicationId, "to status:", status, "by user:", userId);
+
+    if (!applicationId) {
+      return res.status(400).send({
+        success: false,
+        message: "Application ID is required",
+      });
+    }
+
+    if (!status || !["shortlisted", "rejected"].includes(status)) {
+      return res.status(400).send({
+        success: false,
+        message: "Valid status is required (shortlisted or rejected)",
+      });
+    }
+
+    const application = await applications
+      .findById(applicationId)
+      .populate({
+        path: "jobId",
+        select: "createdBy",
+      });
+
+    if (!application) {
+      return res.status(404).send({
+        success: false,
+        message: "Application not found",
+      });
+    }
+
+    // Type assertion to access createdBy on populated jobId
+    const jobDoc = application.jobId as unknown as { createdBy: any };
+
+    if (!jobDoc.createdBy || jobDoc.createdBy.toString() !== userId) {
+      return res.status(403).send({
+        success: false,
+        message: "You are not authorized to update this application",
+      });
+    }
+
+    application.status = status;
+
+    await application.save();
+
+    return res.status(200).send({
+      success: true,
+      message: "Application status updated successfully",
+      application,
+    });
+
+  } catch(error){
+     console.error("Error fetching applications:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+
+}

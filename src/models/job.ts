@@ -6,10 +6,10 @@ export interface IJob extends Document {
   type: "permanent" | "contract" | "internship";
   site: "on-site" | "remote" | "hybrid";
   experience: "entry" | "mid" | "senior";
-  applicantsNeeded?: number;
-  noOfApplicants?: number;
-  deadline?: Date;
-  salary?: number;
+  applicantsNeeded: number;
+  noOfApplicants: number;
+  deadline: Date;
+  salary: number;
   createdBy: mongoose.Types.ObjectId;
 }
 

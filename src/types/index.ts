@@ -63,3 +63,12 @@ export interface GetJobRequest extends Request {
     experience?: string; // "entry" | "mid" | "senior"
   }
 }
+
+export interface UpdateApplicationStatusRequest extends AuthRequest {
+  params: {
+    id: string;
+  };
+  body: {
+    status: "applied" | "shortlisted" | "rejected";
+  };
+}
