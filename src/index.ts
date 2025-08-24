@@ -7,8 +7,9 @@ import userRoute from "./routes/user.route";
 import jobRoute from "./routes/job.route";
 import applicationRoute from "./routes/applications.route";
 import adminRoute from './routes/admin.route';
+import swaggerDocs from "./utils/swagger";
 
-const app: Application = express();
+const app = express();
 
 // .env configuration
 dotenv.config();
@@ -39,4 +40,5 @@ app.get("/", (req: Request, res: Response) => {
 app.listen(port, () => {
   connectDB();
   console.log("Server listning in port ", port);
+  swaggerDocs(app, Number(port));
 });

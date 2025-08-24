@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import user, { IUser } from "../models/user";
-import { generateToken } from "../utils/generateToke";
+import { generateToken } from "../utils/generateToken";
 import { AuthRequest } from "../types";
 import mongoose from "mongoose";
 
