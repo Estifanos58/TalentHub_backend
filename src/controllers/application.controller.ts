@@ -157,7 +157,7 @@ export const getApplications = async (
  
 
     if (!applicationsList || applicationsList.length === 0) {
-      return res.status(200).send({
+      return res.status(400).send({
         success: false,
         message: "No applications found for this user",
       });

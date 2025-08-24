@@ -11,6 +11,7 @@ export const validateUser = (req: AuthRequest, res: Response, next: NextFunction
       return res.status(401).json({
         success: false,
         message: "No token provided",
+        data: null,
       });
     }
 
@@ -29,6 +30,7 @@ export const validateUser = (req: AuthRequest, res: Response, next: NextFunction
     return res.status(403).json({
       success: false,
       message: "Unauthorized: Invalid or expired token",
+      data: null
     });
   }
 };
