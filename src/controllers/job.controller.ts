@@ -78,15 +78,13 @@ export const createJob = async (req: CreateJobRequest, res: Response) => {
 
 export const getJobs = async (req: GetJobRequest, res: Response) => {
   try {
-    let userId = null;
-    if (req.userId) {
-      userId = req.userId;
-    }
-
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const search = (req.query.search as string) || "";
-    const yourJob = req.query.yourJobs === "true";
+    const yourJob = req.query.yourJob == "true";
+    const userId = req.query.userId as string;
+
+    // console.log('Get Jobs Query Params:', req.query);
 
     // New filter query params
     const type = req.query.type as string; // "permanent" | "contract" | "internship"
@@ -102,6 +100,7 @@ export const getJobs = async (req: GetJobRequest, res: Response) => {
     if (yourJob) {
       query.createdBy = userId;
     }
+    // console.log('Your Job Query:', yourJob, 'User ID:', userId);
 
     // Search in title/description
     if (search) {
@@ -122,6 +121,8 @@ export const getJobs = async (req: GetJobRequest, res: Response) => {
       job.countDocuments(query),
     ]);
 
+    // console.log(`Found ${totalJobs} jobs matching criteria.`);
+    // console.log('Jobs:', jobs);
     const totalPages = Math.ceil(totalJobs / limit);
 
     if (totalJobs === 0) {

@@ -62,7 +62,8 @@ export interface GetJobRequest extends AuthRequest {
     type?: string; // "permanent" | "contract" | "internship"
     site?: string; // "on-site" | "remote" | "hybrid"
     experience?: string; // "entry" | "mid" | "senior"
-    yourJobs?: string; // "true" or "false"
+    yourJob?: string; // "true" or "false"
+    userId?: string;
   }
 }
 
